@@ -9,9 +9,9 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
-    "db:setup": "cd backend && npm run prisma:generate && npm run prisma:push && npm run prisma:seed"
+    "start": "cd backend && npm start"
   },
-  "devDependencies": {
+  "dependencies": {
     "concurrently": "^8.2.2"
   }
 }
