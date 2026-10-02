@@ -13,5 +13,5 @@
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "prisma"]
+  "exclude": ["node_modules", "dist", "prisma", "src/test_suite.ts", "src/final_e2e_flow.ts"]
 }
