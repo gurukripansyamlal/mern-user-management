@@ -5,8 +5,10 @@ const schemaPath = path.join(__dirname, 'schema.prisma');
 let schema = fs.readFileSync(schemaPath, 'utf8');
 
 const dbUrl = process.env.DATABASE_URL || '';
-if (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://')) {
-  console.log('🔄 Detected PostgreSQL in DATABASE_URL. Updating Prisma provider to "postgresql"...');
+const isProd = process.env.NODE_ENV === 'production';
+
+if (isProd || dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://')) {
+  console.log('🔄 Detected Production / PostgreSQL. Setting Prisma provider to "postgresql"...');
   schema = schema.replace(/provider\s*=\s*"(sqlite|postgresql)"/, 'provider = "postgresql"');
   fs.writeFileSync(schemaPath, schema);
 } else {
