@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: cloudhouse-pos
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm run install:all && npm run build && cd backend && npm run prisma:generate
+    startCommand: cd backend && npm run prisma:push && npm run prisma:seed && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cloudhouse-pos-db
+          property: connectionString
+
+databases:
+  - name: cloudhouse-pos-db
+    plan: free
+    region: oregon
+    databaseName: pos_db
+    user: pos_user
