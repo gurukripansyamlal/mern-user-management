@@ -1,0 +1,159 @@
+// Prisma Schema for Textile & Retail POS Billing Software
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  passwordHash  String
+  role          String        @default("STAFF") // "ADMIN" | "STAFF"
+  phone         String?
+  status        String        @default("ACTIVE") // "ACTIVE" | "INACTIVE"
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  sales         Sale[]
+  returns       Return[]
+  ledgerEntries LedgerEntry[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                String      @id @default(uuid())
+  sku               String      @unique
+  name              String
+  categoryId        String
+  description       String?
+  sellingPrice      Float
+  costPrice         Float
+  stockQuantity     Int         @default(0)
+  lowStockThreshold Int         @default(5)
+  unit              String      @default("pcs") // pcs, mtr, set, roll, etc.
+  status            String      @default("ACTIVE") // "ACTIVE" | "INACTIVE"
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  category          Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  saleItems         SaleItem[]
+  returns           Return[]
+
+  @@index([sku])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  name        String
+  companyName String
+  phone       String
+  email       String?
+  address     String?
+  status      String    @default("ACTIVE") // "ACTIVE" | "INACTIVE"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("suppliers")
+}
+
+model Sale {
+  id             String      @id @default(uuid())
+  invoiceNumber  String      @unique
+  staffId        String
+  customerName   String?
+  customerPhone  String?
+  subtotal       Float
+  discount       Float       @default(0)
+  tax            Float       @default(0)
+  total          Float
+  paymentMethod  String      @default("CASH") // "CASH" | "CARD" | "UPI"
+  paymentStatus  String      @default("PAID") // "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED"
+  amountReceived Float?
+  changeGiven    Float?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  staff          User        @relation(fields: [staffId], references: [id])
+  items          SaleItem[]
+  returns        Return[]
+
+  @@index([invoiceNumber])
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id               String   @id @default(uuid())
+  saleId           String
+  productId        String
+  quantity         Int
+  returnedQuantity Int      @default(0)
+  unitPrice        Float
+  costPrice        Float    @default(0)
+  total            Float
+
+  sale             Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
+}
+
+model Return {
+  id            String   @id @default(uuid())
+  saleId        String
+  productId     String
+  quantity      Int
+  reason        String
+  refundAmount  Float
+  processedById String
+  createdAt     DateTime @default(now())
+
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id])
+  processedBy   User     @relation(fields: [processedById], references: [id])
+
+  @@index([saleId])
+  @@map("returns")
+}
+
+model LedgerEntry {
+  id          String   @id @default(uuid())
+  type        String   // "SALE" | "RETURN" | "EXPENSE" | "SUPPLIER_PAYMENT" | "OPENING_BALANCE"
+  reference   String?  // invoice number, return id, etc.
+  description String
+  debit       Float    @default(0)
+  credit      Float    @default(0)
+  balance     Float    @default(0)
+  date        DateTime @default(now())
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+
+  @@index([date])
+  @@map("ledger_entries")
+}

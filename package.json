@@ -1,0 +1,17 @@
+{
+  "name": "cloudhouse-textile-pos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-Ready Textile & Retail POS Billing Software",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently -n \"API,WEB\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "db:setup": "cd backend && npm run prisma:generate && npm run prisma:push && npm run prisma:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
